@@ -26,11 +26,11 @@ go get -u github.com/CovenantSQL/beacon
 
 #### Generate AAAA Records
 ```bash
-$ echo "012ssss\0\0s3ssssssss1sssss#ssssss" | beacon -trim -mode ipv6 -domain test.gridbase.io                 
+$ echo "从前有座山の里有座庙12" | beacon -trim -domain zh.test.gridb.io                 
 Generated IPv6 addr:
 ;; AAAA Records:
-00.test.gridbase.io	1	IN	AAAA	3031:3273:7373:7300:73:3373:7373:7373
-01.test.gridbase.io	1	IN	AAAA	7373:7331:7373:7373:7323:7373:7373:7373
+00.zh.test.gridb.io	1	IN	AAAA	e4bb:8ee5:898d:e69c:89e5:baa7:e5b1:b1e3
+01.zh.test.gridb.io	1	IN	AAAA	81ae:e987:8ce6:9c89:e5ba:a7e5:ba99:3132
 ```
 
 #### Set in your DNS Vendor
@@ -40,15 +40,15 @@ Generated IPv6 addr:
 #### Read from DNS
 Raw:
 ```bash
-$ beacon -mode ipv6 -domain test.gridbase.io
-INFO[0000] #### test.gridbase.io ####                   
-012sssss3ssssssss1sssss#ssssss
-INFO[0000] #### test.gridbase.io ####         
+$ beacon -mode ipv6 -domain zh.test.gridbase.io
+INFO[0000] #### zh.test.gridbase.io ####                   
+从前有座山の里有座庙12
+INFO[0000] #### zh.test.gridbase.io ####         
 ```
 Hex:
 ```bash       
-$ beacon -mode ipv6 -domain test.gridbase.io -hex
-INFO[0000] #### test.gridbase.io ####                   
-3031327373737300007333737373737373737331737373737323737373737373
-INFO[0000] #### test.gridbase.io ####                   
+$ beacon -mode ipv6 -domain zh.test.gridbase.io -hex
+INFO[0000] #### zh.test.gridbase.io ####                   
+e4bb8ee5898de69c89e5baa7e5b1b1e381aee9878ce69c89e5baa7e5ba993132
+INFO[0000] #### zh.test.gridbase.io ####                   
 ```
