@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/CovenantSQL/beacon/ipv6"
 	log "github.com/Sirupsen/logrus"
-	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -31,19 +31,19 @@ func main() {
 			log.Errorf("open stdin failed: %v", err)
 			os.Exit(1)
 		}
-		if fi.Mode()&os.ModeCharDevice == 0 && fi.Size() > 0 {
+		if fi.Mode()&os.ModeCharDevice == 0 {
 			reader := bufio.NewReader(os.Stdin)
-			var allInput []byte
-
-			for {
-				input, err := reader.ReadByte()
-				if err != nil && err == io.EOF {
-					break
-				}
-				allInput = append(allInput, input)
+			allInput, err := ioutil.ReadAll(reader)
+			if err != nil {
+				log.Errorf("failed to read inputs: %v", err)
+				os.Exit(1)
 			}
 			if trim {
 				allInput = []byte(strings.TrimSpace(string(allInput)))
+			}
+			if len(allInput) == 0 {
+				log.Error("blank input")
+				os.Exit(1)
 			}
 			fmt.Print("Generated IPv6 addr:\n;; AAAA Records:\n")
 			ips, err := ipv6.ToIPv6(allInput)
