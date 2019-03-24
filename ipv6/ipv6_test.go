@@ -38,4 +38,9 @@ func TestIPv6(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(out, ShouldResemble, in)
 	})
+	Convey("from domain", t, func() {
+		buf, err := FromDomain("zh.test.optool.net")
+		So(err, ShouldBeNil)
+		So(buf, ShouldResemble, []byte("从前有座山の里有座庙12"))
+	})
 }

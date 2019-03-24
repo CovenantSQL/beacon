@@ -1,8 +1,10 @@
 package ipv6
 
 import (
-	"errors"
+	"fmt"
+	"github.com/pkg/errors"
 	"net"
+	"strings"
 )
 
 func ToIPv6(in []byte) (ips [] net.IP, err error) {
@@ -25,5 +27,34 @@ func FromIPv6(ips []net.IP) (out []byte, err error) {
 		copy(out[i*net.IPv6len:(i+1)*net.IPv6len], ips[i])
 	}
 
+	return
+}
+
+func FromDomain(domain string) (out []byte, err error) {
+	var ips []net.IP
+	allIPv6 := make([]net.IP, 0, 4)
+	for i := 0; ; i++ {
+		ips, err = net.LookupIP(fmt.Sprintf("%02d.%s", i, domain))
+		if err != nil {
+			if _, ok := err.(*net.DNSError); ok && strings.Contains(err.Error(), "no such host") {
+				break
+			} else {
+				return
+			}
+		} else {
+			if len(ips) == 0 {
+				return nil, errors.New("empty IP list")
+			}
+			if len(ips[0]) != net.IPv6len {
+				return nil, errors.Errorf("unexpected IP: %s", ips[0])
+			}
+			allIPv6 = append(allIPv6, ips[0])
+		}
+
+	}
+	out, err = FromIPv6(allIPv6)
+	if err != nil {
+		return nil, errors.Errorf("convert from IPv6 failed: %v", err)
+	}
 	return
 }

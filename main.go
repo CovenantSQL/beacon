@@ -7,7 +7,6 @@ import (
 	"github.com/CovenantSQL/beacon/ipv6"
 	log "github.com/Sirupsen/logrus"
 	"io"
-	"net"
 	"os"
 	"strings"
 )
@@ -69,32 +68,9 @@ func main() {
 				log.Println("please specify the source domain")
 				os.Exit(2)
 			}
-			allIPv6 := make([]net.IP, 0, 4)
-			for i := 0; ; i++ {
-				ips, err := net.LookupIP(fmt.Sprintf("%02d.%s", i, domain))
-				if err != nil {
-					if _, ok := err.(*net.DNSError); ok && strings.Contains(err.Error(), "no such host") {
-						break
-					} else {
-						log.Errorf("DNS error: %v", err)
-						os.Exit(2)
-					}
-				} else {
-					if len(ips) == 0 {
-						log.Error("empty IP list")
-						os.Exit(2)
-					}
-					if len(ips[0]) != net.IPv6len {
-						log.Errorf("unexpected IP: %s", ips[0])
-						os.Exit(2)
-					}
-					allIPv6 = append(allIPv6, ips[0])
-				}
-
-			}
-			out, err := ipv6.FromIPv6(allIPv6)
+			out, err := ipv6.FromDomain(domain)
 			if err != nil {
-				log.Errorf("convert from IPv6 failed: %v", err)
+				log.Errorf("failed to get data from %s: %v", domain, err)
 				os.Exit(2)
 			}
 			log.Infof("#### %s ####\n", domain)
