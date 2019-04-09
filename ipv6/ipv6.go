@@ -2,9 +2,9 @@ package ipv6
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net"
-	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func ToIPv6(in []byte) (ips []net.IP, err error) {
@@ -36,7 +36,7 @@ func FromDomain(domain string) (out []byte, err error) {
 	for i := 0; ; i++ {
 		ips, err = net.LookupIP(fmt.Sprintf("%02d.%s", i, domain))
 		if err != nil {
-			if i > 0 && (strings.Contains(err.Error(), "No address associated with hostname") || strings.Contains(err.Error(), "no such host")) {
+			if i > 0 {
 				break
 			} else {
 				return
