@@ -43,7 +43,7 @@ func FromDomain(domain string) (out []byte, err error) {
 	wg := new(sync.WaitGroup)
 
 	for i := 0; ; i++ {
-		// concurrency by group
+		// Concurrency by group
 		var successCount int32
 
 		ipsArray = make([][]net.IP, concurrentNum, concurrentNum)
@@ -63,7 +63,7 @@ func FromDomain(domain string) (out []byte, err error) {
 
 						break
 					} else {
-						// return the first error
+						// Return the first error
 						if index == 0 {
 							ipsErr = err
 						}
