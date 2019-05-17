@@ -63,7 +63,7 @@ func FromDomain(domain string) (out []byte, err error) {
 
 						break
 					} else {
-						if j == 0 {
+						if index == 0 {
 							ipsErr = err
 						}
 					}
