@@ -3,6 +3,8 @@ package ipv6
 import (
 	"fmt"
 	"net"
+	"sort"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -31,27 +33,66 @@ func FromIPv6(ips []net.IP) (out []byte, err error) {
 }
 
 func FromDomain(domain string) (out []byte, err error) {
-	var ips []net.IP
+	concurrentNum := 5
+	retryCount := 3
 	allIPv6 := make([]net.IP, 0, 4)
+	var ipsKeys []int
+	ipsMap := make(map[int][]net.IP)
+	var ipsErr error
+	wg := new(sync.WaitGroup)
+	var syncLock sync.Mutex
+
 	for i := 0; ; i++ {
-		ips, err = net.LookupIP(fmt.Sprintf("%02d.%s", i, domain))
-		if err != nil {
-			if i > 0 {
+		// Concurrent by group
+		var successCount int
+		wg.Add(concurrentNum)
+		for j := 0; j < concurrentNum; j++ {
+			go func(i, j int) {
+				defer wg.Done()
+				index := i*concurrentNum + j
+				for a := 0; a < retryCount; a++ {
+					ips, err := net.LookupIP(fmt.Sprintf("%02d.%s", index, domain))
+					if err == nil {
+						syncLock.Lock()
+						ipsMap[index] = ips
+						successCount++
+						syncLock.Unlock()
+						break
+					} else {
+						if j == 0 {
+							ipsErr = err
+						}
+					}
+				}
+			}(i, j)
+		}
+		wg.Wait()
+
+		if len(ipsMap) != 0 {
+			if successCount < concurrentNum {
 				break
-			} else {
-				return
 			}
 		} else {
-			if len(ips) == 0 {
-				return nil, errors.New("empty IP list")
-			}
-			if len(ips[0]) != net.IPv6len {
-				return nil, errors.Errorf("unexpected IP: %s", ips[0])
-			}
-			allIPv6 = append(allIPv6, ips[0])
+			return nil, ipsErr
 		}
-
 	}
+
+	for k := range ipsMap {
+		ipsKeys = append(ipsKeys, k)
+	}
+	sort.Ints(ipsKeys)
+
+	for _, key := range ipsKeys {
+		ips := ipsMap[key]
+		if len(ips) == 0 {
+			return nil, errors.New("empty IP list")
+		}
+		if len(ips[0]) != net.IPv6len {
+			return nil, errors.Errorf("unexpected IP: %s", ips[0])
+		}
+		allIPv6 = append(allIPv6, ips[0])
+	}
+
 	out, err = FromIPv6(allIPv6)
 	if err != nil {
 		return nil, errors.Errorf("convert from IPv6 failed: %v", err)
