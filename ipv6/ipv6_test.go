@@ -1,8 +1,12 @@
 package ipv6
 
 import (
+	"errors"
 	. "github.com/smartystreets/goconvey/convey"
+	"math/rand"
+	"net"
 	"testing"
+	"time"
 )
 
 func TestIPv6(t *testing.T) {
@@ -39,8 +43,24 @@ func TestIPv6(t *testing.T) {
 		So(out, ShouldResemble, in)
 	})
 	Convey("from domain", t, func() {
-		buf, err := FromDomain("zh.test.optool.net")
+		f := func(host string) ([]net.IP, error) {
+			return net.LookupIP(host)
+		}
+		buf, err := FromDomain("zh.test.optool.net", f)
 		So(err, ShouldBeNil)
 		So(buf, ShouldResemble, []byte("从前有座山の里有座庙12"))
+
+		// Retry when parsing IP errors
+		rand.Seed(time.Now().UnixNano())
+		f1 := func(host string) ([]net.IP, error) {
+			t := rand.Intn(10000)
+			if t < 2001 {
+				return nil, errors.New("no such host")
+			}
+			return net.LookupIP(host)
+		}
+		buf1, err1 := FromDomain("zh.test.optool.net", f1)
+		So(err1, ShouldBeNil)
+		So(buf1, ShouldResemble, []byte("从前有座山の里有座庙12"))
 	})
 }

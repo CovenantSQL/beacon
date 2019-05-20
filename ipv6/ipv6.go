@@ -2,11 +2,10 @@ package ipv6
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"sync"
 	"sync/atomic"
-
-	"github.com/pkg/errors"
 )
 
 func ToIPv6(in []byte) (ips []net.IP, err error) {
@@ -32,7 +31,7 @@ func FromIPv6(ips []net.IP) (out []byte, err error) {
 	return
 }
 
-func FromDomain(domain string) (out []byte, err error) {
+func FromDomain(domain string, f func(host string) ([]net.IP, error)) (out []byte, err error) {
 	concurrentNum := 5
 	retryCount := 3
 
@@ -55,8 +54,8 @@ func FromDomain(domain string) (out []byte, err error) {
 				defer wg.Done()
 
 				index := i*concurrentNum + j
-				for a := 0; a < retryCount; a++ {
-					ips, err := net.LookupIP(fmt.Sprintf("%02d.%s", index, domain))
+				for r := 0; r < retryCount; r++ {
+					ips, err := f(fmt.Sprintf("%02d.%s", index, domain))
 					if err == nil {
 						ipsArray[j] = ips
 						atomic.AddInt32(&successCount, 1)
