@@ -7,6 +7,7 @@ import (
 	"github.com/CovenantSQL/beacon/ipv6"
 	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
+	"net"
 	"os"
 	"strings"
 )
@@ -68,7 +69,10 @@ func main() {
 				log.Println("please specify the source domain")
 				os.Exit(2)
 			}
-			out, err := ipv6.FromDomain(domain)
+			f := func(host string) ([]net.IP, error) {
+				return net.LookupIP(host)
+			}
+			out, err := ipv6.FromDomain(domain, f)
 			if err != nil {
 				log.Errorf("failed to get data from %s: %v", domain, err)
 				os.Exit(2)
