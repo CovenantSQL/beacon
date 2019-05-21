@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/CovenantSQL/beacon/ipv6"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net"
 	"os"
