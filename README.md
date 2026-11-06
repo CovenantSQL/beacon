@@ -19,7 +19,7 @@ and [`IPv6 DNS`](https://en.wikipedia.org/wiki/IPv6_address)(readonly, need to s
 ### Install
 
 ```go
-go get -u github.com/CovenantSQL/beacon
+go install github.com/CovenantSQL/beacon@latest
 ```
 
 ### IPv6
