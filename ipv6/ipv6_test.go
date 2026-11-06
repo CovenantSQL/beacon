@@ -1,47 +1,56 @@
 package ipv6
 
 import (
+	"bytes"
 	"errors"
-	. "github.com/smartystreets/goconvey/convey"
 	"net"
 	"sync"
 	"testing"
 )
 
 func TestIPv6(t *testing.T) {
-	Convey("nil", t, func() {
+	t.Run("nil", func(t *testing.T) {
 		ips, _ := ToIPv6(nil)
-		So(ips, ShouldHaveLength, 0)
+		if len(ips) != 0 {
+			t.Errorf("ToIPv6(nil) = %v, want no IPs", ips)
+		}
 	})
-	Convey("error", t, func() {
+	t.Run("error", func(t *testing.T) {
 		ips, err := ToIPv6([]byte("aa"))
-		So(err, ShouldNotBeNil)
-		So(ips, ShouldHaveLength, 0)
+		if err == nil || len(ips) != 0 {
+			t.Errorf("ToIPv6(aa) = %v, %v; want an error", ips, err)
+		}
 	})
-	Convey("from to IPv6", t, func() {
+	t.Run("from to IPv6", func(t *testing.T) {
 		in := []byte("1234567812345678")
 		ips, err := ToIPv6(in)
-		So(err, ShouldBeNil)
-		So(ips, ShouldHaveLength, 1)
-		So(ips[0].String(), ShouldEqual, "3132:3334:3536:3738:3132:3334:3536:3738")
+		if err != nil || len(ips) != 1 || ips[0].String() != "3132:3334:3536:3738:3132:3334:3536:3738" {
+			t.Fatalf("ToIPv6(%s) = %v, %v; want [3132:3334:3536:3738:3132:3334:3536:3738]", in, ips, err)
+		}
 
 		out, err := FromIPv6(ips)
-		So(err, ShouldBeNil)
-		So(out, ShouldResemble, in)
+		if err != nil || !bytes.Equal(out, in) {
+			t.Errorf("FromIPv6(%v) = %q, %v; want %q", ips, out, err, in)
+		}
 	})
-	Convey("from to IPv6", t, func() {
+	t.Run("from to IPv6", func(t *testing.T) {
 		in := []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 		ips, err := ToIPv6(in)
-		So(err, ShouldBeNil)
-		So(ips, ShouldHaveLength, 2)
-		So(ips[0].String(), ShouldEqual, "6161:6161:6161:6161:6161:6161:6161:6161")
-		So(ips[1].String(), ShouldEqual, "6161:6161:6161:6161:6161:6161:6161:6161")
+		if err != nil || len(ips) != 2 {
+			t.Fatalf("ToIPv6(%s) = %v, %v; want 2 IPs", in, ips, err)
+		}
+		for _, ip := range ips {
+			if ip.String() != "6161:6161:6161:6161:6161:6161:6161:6161" {
+				t.Errorf("ToIPv6(%s) returned %s, want 6161:6161:6161:6161:6161:6161:6161:6161", in, ip)
+			}
+		}
 
 		out, err := FromIPv6(ips)
-		So(err, ShouldBeNil)
-		So(out, ShouldResemble, in)
+		if err != nil || !bytes.Equal(out, in) {
+			t.Errorf("FromIPv6(%v) = %q, %v; want %q", ips, out, err, in)
+		}
 	})
-	Convey("from domain", t, func() {
+	t.Run("from domain", func(t *testing.T) {
 		// The AAAA records of the README example.
 		records := map[string]net.IP{
 			"00.zh.test.optool.net": net.ParseIP("e4bb:8ee5:898d:e69c:89e5:baa7:e5b1:b1e3"),
@@ -53,9 +62,11 @@ func TestIPv6(t *testing.T) {
 			}
 			return nil, errors.New("no such host")
 		}
+		want := []byte("从前有座山の里有座庙12")
 		buf, err := FromDomain("zh.test.optool.net", f)
-		So(err, ShouldBeNil)
-		So(buf, ShouldResemble, []byte("从前有座山の里有座庙12"))
+		if err != nil || !bytes.Equal(buf, want) {
+			t.Errorf("FromDomain() = %q, %v; want %q", buf, err, want)
+		}
 
 		// Retry: each name fails its first 2 lookups, and FromDomain tries 3 times.
 		var mu sync.Mutex
@@ -71,7 +82,8 @@ func TestIPv6(t *testing.T) {
 			return f(host)
 		}
 		buf1, err1 := FromDomain("zh.test.optool.net", f1)
-		So(err1, ShouldBeNil)
-		So(buf1, ShouldResemble, []byte("从前有座山の里有座庙12"))
+		if err1 != nil || !bytes.Equal(buf1, want) {
+			t.Errorf("FromDomain() with failing lookups = %q, %v; want %q", buf1, err1, want)
+		}
 	})
 }
