@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log/slog"
 	"net"
 	"os"
@@ -35,7 +35,7 @@ func main() {
 		}
 		if fi.Mode()&os.ModeCharDevice == 0 {
 			reader := bufio.NewReader(os.Stdin)
-			allInput, err := ioutil.ReadAll(reader)
+			allInput, err := io.ReadAll(reader)
 			if err != nil {
 				slog.Error(fmt.Sprintf("failed to read inputs: %v", err))
 				os.Exit(1)
