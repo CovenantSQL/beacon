@@ -41,14 +41,14 @@ Generated IPv6 addr:
 Raw:
 ```bash
 $ beacon -mode ipv6 -domain zh.test.optool.net
-INFO[0000] #### zh.test.optool.net ####                   
+2019/05/21 10:33:51 INFO #### zh.test.optool.net ####
 从前有座山の里有座庙12
-INFO[0000] #### zh.test.optool.net ####         
+2019/05/21 10:33:51 INFO #### zh.test.optool.net ####
 ```
 Hex:
 ```bash       
 $ beacon -mode ipv6 -domain zh.test.optool.net -hex
-INFO[0000] #### zh.test.optool.net ####                   
+2019/05/21 10:33:51 INFO #### zh.test.optool.net ####
 e4bb8ee5898de69c89e5baa7e5b1b1e381aee9878ce69c89e5baa7e5ba993132
-INFO[0000] #### zh.test.optool.net ####                   
+2019/05/21 10:33:51 INFO #### zh.test.optool.net ####
 ```
