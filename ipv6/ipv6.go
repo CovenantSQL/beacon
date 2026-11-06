@@ -1,8 +1,8 @@
 package ipv6
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -81,7 +81,7 @@ func FromDomain(domain string, f func(host string) ([]net.IP, error)) (out []byt
 					return nil, errors.New("empty IP list")
 				}
 				if len(ips[0]) != net.IPv6len {
-					return nil, errors.Errorf("unexpected IP: %s", ips[0])
+					return nil, fmt.Errorf("unexpected IP: %s", ips[0])
 				}
 				allIPv6 = append(allIPv6, ips[0])
 			}
@@ -99,7 +99,7 @@ func FromDomain(domain string, f func(host string) ([]net.IP, error)) (out []byt
 
 	out, err = FromIPv6(allIPv6)
 	if err != nil {
-		return nil, errors.Errorf("convert from IPv6 failed: %v", err)
+		return nil, fmt.Errorf("convert from IPv6 failed: %v", err)
 	}
 	return
 }
