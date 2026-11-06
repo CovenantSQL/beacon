@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/CovenantSQL/beacon/ipv6"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"log/slog"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/CovenantSQL/beacon/ipv6"
 )
 
 var (
@@ -29,35 +30,35 @@ func main() {
 	if mode == "ipv6" {
 		fi, err := os.Stdin.Stat()
 		if err != nil {
-			log.Errorf("open stdin failed: %v", err)
+			slog.Error(fmt.Sprintf("open stdin failed: %v", err))
 			os.Exit(1)
 		}
 		if fi.Mode()&os.ModeCharDevice == 0 {
 			reader := bufio.NewReader(os.Stdin)
 			allInput, err := ioutil.ReadAll(reader)
 			if err != nil {
-				log.Errorf("failed to read inputs: %v", err)
+				slog.Error(fmt.Sprintf("failed to read inputs: %v", err))
 				os.Exit(1)
 			}
 			if trim {
 				allInput = []byte(strings.TrimSpace(string(allInput)))
 			}
 			if len(allInput) == 0 {
-				log.Error("blank input")
+				slog.Error("blank input")
 				os.Exit(1)
 			}
 			fmt.Print("Generated IPv6 addr:\n;; AAAA Records:\n")
 			ips, err := ipv6.ToIPv6(allInput)
 			if err != nil {
-				log.Errorf("failed to convert IPv6: %v", err)
+				slog.Error(fmt.Sprintf("failed to convert IPv6: %v", err))
 				os.Exit(1)
 			}
 			if len(ips) > 100 {
-				log.Errorf("generated IPv6 addr count above 100: %d", len(ips))
+				slog.Error(fmt.Sprintf("generated IPv6 addr count above 100: %d", len(ips)))
 				os.Exit(1)
 			}
 			if len(ips) == 0 {
-				log.Errorf("failed to generate IPv6 for %s", allInput)
+				slog.Error(fmt.Sprintf("failed to generate IPv6 for %s", allInput))
 				os.Exit(1)
 			}
 			for i, ip := range ips {
@@ -66,7 +67,7 @@ func main() {
 			return
 		} else {
 			if domain == "example.org" {
-				log.Println("please specify the source domain")
+				slog.Info("please specify the source domain")
 				os.Exit(2)
 			}
 			f := func(host string) ([]net.IP, error) {
@@ -74,16 +75,16 @@ func main() {
 			}
 			out, err := ipv6.FromDomain(domain, f)
 			if err != nil {
-				log.Errorf("failed to get data from %s: %v", domain, err)
+				slog.Error(fmt.Sprintf("failed to get data from %s: %v", domain, err))
 				os.Exit(2)
 			}
-			log.Infof("#### %s ####\n", domain)
+			slog.Info(fmt.Sprintf("#### %s ####", domain))
 			if hex {
 				fmt.Printf("%x\n", out)
 			} else {
 				fmt.Printf("%s\n", string(out))
 			}
-			log.Infof("#### %s ####\n", domain)
+			slog.Info(fmt.Sprintf("#### %s ####", domain))
 		}
 	}
 }
