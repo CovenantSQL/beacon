@@ -3,10 +3,9 @@ package ipv6
 import (
 	"errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"math/rand"
 	"net"
+	"sync"
 	"testing"
-	"time"
 )
 
 func TestIPv6(t *testing.T) {
@@ -43,21 +42,33 @@ func TestIPv6(t *testing.T) {
 		So(out, ShouldResemble, in)
 	})
 	Convey("from domain", t, func() {
+		// The AAAA records of the README example.
+		records := map[string]net.IP{
+			"00.zh.test.optool.net": net.ParseIP("e4bb:8ee5:898d:e69c:89e5:baa7:e5b1:b1e3"),
+			"01.zh.test.optool.net": net.ParseIP("81ae:e987:8ce6:9c89:e5ba:a7e5:ba99:3132"),
+		}
 		f := func(host string) ([]net.IP, error) {
-			return net.LookupIP(host)
+			if ip, ok := records[host]; ok {
+				return []net.IP{ip}, nil
+			}
+			return nil, errors.New("no such host")
 		}
 		buf, err := FromDomain("zh.test.optool.net", f)
 		So(err, ShouldBeNil)
 		So(buf, ShouldResemble, []byte("从前有座山の里有座庙12"))
 
-		// Retry when parsing IP errors
-		rand.Seed(time.Now().UnixNano())
+		// Retry: each name fails its first 2 lookups, and FromDomain tries 3 times.
+		var mu sync.Mutex
+		lookups := make(map[string]int)
 		f1 := func(host string) ([]net.IP, error) {
-			t := rand.Intn(10000)
-			if t < 2001 {
+			mu.Lock()
+			lookups[host]++
+			n := lookups[host]
+			mu.Unlock()
+			if n <= 2 {
 				return nil, errors.New("no such host")
 			}
-			return net.LookupIP(host)
+			return f(host)
 		}
 		buf1, err1 := FromDomain("zh.test.optool.net", f1)
 		So(err1, ShouldBeNil)
